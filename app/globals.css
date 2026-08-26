@@ -1,0 +1,112 @@
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body {
+  overflow-x: hidden;
+  color: #0F2A3D;
+  font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+  min-height: 100vh;
+  background-color: #EAF1EE;
+  background-image:
+    radial-gradient(circle at 12% 15%, rgba(20,166,150,0.42) 0%, transparent 45%),
+    radial-gradient(circle at 92% 8%, rgba(11,61,92,0.38) 0%, transparent 55%),
+    radial-gradient(circle at 85% 90%, rgba(47,122,77,0.38) 0%, transparent 48%),
+    radial-gradient(circle at 5% 90%, rgba(212,165,74,0.36) 0%, transparent 55%),
+    radial-gradient(circle at 50% 45%, rgba(20,166,150,0.14) 0%, transparent 60%),
+    repeating-radial-gradient(circle at 20% 25%, rgba(11,61,92,0.09) 0px, rgba(11,61,92,0.09) 1px, transparent 1px, transparent 30px),
+    repeating-radial-gradient(circle at 80% 75%, rgba(47,122,77,0.08) 0px, rgba(47,122,77,0.08) 1px, transparent 1px, transparent 30px);
+  background-size: auto, auto, auto, auto, auto, auto, auto;
+  background-attachment: fixed;
+}
+
+.card {
+  @apply bg-card rounded-2xl border border-line relative;
+  box-shadow: 0 1px 2px rgba(15,42,61,0.04), 0 8px 24px -8px rgba(15,42,61,0.10);
+}
+.card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: 0 4px 8px rgba(15,42,61,0.06), 0 16px 32px -12px rgba(15,42,61,0.14);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+
+.card:hover::after {
+  opacity: 1;
+}
+
+.badge {
+  @apply inline-flex items-center px-2 py-0.5 tablet:px-2.5 tablet:py-1 rounded-full text-[10px] tablet:text-xs font-semibold;
+  box-shadow: 0 1px 2px rgba(0,18,25,0.06);
+}
+
+.input {
+  width: 100%;
+  background: #F3F2EE;
+  border: 1px solid #E4E2DC;
+  border-radius: 0.5rem;
+  padding: 0.6rem 0.75rem;
+  font-size: 0.875rem;
+  color: #0F2A3D;
+  outline: none;
+}
+.input:focus { border-color: #1B7F72; background: white; }
+
+.scrollbar-thin::-webkit-scrollbar { height: 6px; width: 6px; }
+.scrollbar-thin::-webkit-scrollbar-thumb { background: #D9D6CE; border-radius: 4px; }
+
+@keyframes card-pop-in {
+  from { opacity: 0; transform: translateY(6px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.chart-enter { animation: card-pop-in 0.5s ease-out both; }
+
+@keyframes list-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.list-fade {
+  animation: list-fade-in 0.2s ease-out;
+}
+
+/* Transisi halus default untuk semua elemen interaktif -- warna, border,
+   opacity, transform berubah dengan mulus, bukan langsung "patah" instan.
+   Timing function cubic-bezier ini ("ease-out" yang lebih natural) dipakai
+   konsisten di seluruh aplikasi supaya semua transisi terasa senada. */
+button, a, select, input, .badge {
+  transition-property: background-color, color, border-color, box-shadow, opacity, transform;
+  transition-duration: 0.18s;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Animasi modal (backdrop fade + panel muncul dari bawah sedikit + scale in).
+   Sebelumnya Modal.jsx memanggil animasi bernama "fadeIn" yang belum pernah
+   didefinisikan di sini -- jadi modal muncul instan tanpa transisi sama
+   sekali. Ini definisinya yang sebelumnya hilang. */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes backdrop-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.modal-backdrop {
+  animation: backdrop-fade-in 0.18s ease-out both;
+}
+
+/* Panel dropdown (SearchableSelect) -- muncul dengan fade + sedikit turun,
+   bukan langsung nongol instan. */
+@keyframes dropdown-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.dropdown-panel {
+  animation: dropdown-in 0.15s ease-out both;
+}
