@@ -124,6 +124,7 @@ export default function TrenSentimenChart({ dateFrom, dateTo }) {
               contentStyle={{ borderRadius: 8, border: "1px solid #E4E2DC", fontSize: 12 }}
               labelStyle={{ fontWeight: 700, color: SEMANTIC.ink }}
               formatter={(value, name) => [`${value}%`, name]}
+              itemSorter={(item) => ({ Positif: 0, Netral: 1, Negatif: 2 }[item.name] ?? 99)}
             />
             <Line type="linear" dataKey="positifPct" name="Positif" stroke={SENTIMEN_COLORS.Positif} strokeWidth={2.5} dot={{ r: 3 }} />
             <Line type="linear" dataKey="netralPct" name="Netral" stroke={SENTIMEN_COLORS.Netral} strokeWidth={2.5} dot={{ r: 3 }} />

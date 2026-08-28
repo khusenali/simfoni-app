@@ -76,11 +76,14 @@ function FenomenaList({ pin }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const isFirst = useRef(true);
-
+  
   const [items, setItems] = useState([]);
   const [total, setTotal] = useState(0);
   const [grandTotal, setGrandTotal] = useState(0);
-  const [page, setPage] = useState(() => parseInt(searchParams.get("page") || "1", 10));
+  const [page, setPage] = useState(() => {
+  const initial = parseInt(searchParams.get("page") || "1", 10);
+   return initial;
+  });
   const [pageSize, setPageSize] = useState(() => parseInt(searchParams.get("pageSize") || "10", 10));
   const [loading, setLoading] = useState(true);
   const [showPendataan, setShowPendataan] = useState(false);
@@ -223,9 +226,15 @@ function FenomenaList({ pin }) {
     }
   }
 
+  const prevFilterDeps = useRef({ search, sektor, distrik, status, sortBy, sortDir, dateFrom, dateTo });
   useEffect(() => {
-    if (isFirst.current) { isFirst.current = false; return; }
-    setPage(1);
+    const prev = prevFilterDeps.current;
+    const changed =
+      prev.search !== search || prev.sektor !== sektor || prev.distrik !== distrik ||
+      prev.status !== status || prev.sortBy !== sortBy || prev.sortDir !== sortDir ||
+      prev.dateFrom !== dateFrom || prev.dateTo !== dateTo;
+    prevFilterDeps.current = { search, sektor, distrik, status, sortBy, sortDir, dateFrom, dateTo };
+    if (changed) setPage(1);
   }, [search, sektor, distrik, status, sortBy, sortDir, dateFrom, dateTo]);
   useEffect(() => { refreshCurrentView(); }, [load]);
 
@@ -337,22 +346,26 @@ function FenomenaList({ pin }) {
           <PeriodFilter value={period} onChange={setPeriod} />
         </div>
 
-        <div className="flex flex-wrap gap-2 mb-4">
+        <div className="flex flex-wrap items-center gap-1.5 tablet:gap-2 mb-3 tablet:mb-4">
           <button
             onClick={() => setGroupMode((v) => !v)}
-            className={`flex items-center gap-1.5 px-2.5 py-1.5 tablet:px-3 tablet:py-2 rounded-lg border text-xs tablet:text-sm font-semibold transition-colors ${
+            title="Kelompok Mirip"
+            className={`flex items-center gap-1.5 px-2.5 py-1.5 tablet:px-3 tablet:py-2 rounded-lg border text-xs tablet:text-sm font-semibold transition-colors shrink-0 ${
               groupMode ? "bg-gold/10 border-gold text-gold" : "border-line text-slate-soft hover:bg-bg"
             }`}
           >
-            <Layers size={15} /> Kelompok Mirip
+            <Layers size={15} className="shrink-0" />
+            <span className="hidden tablet:inline">Kelompok Mirip</span>
           </button>
-          <SearchableSelect value={sektor} onChange={setSektor} options={["Semua sektor", ...SEKTOR_OPTIONS.slice(1)]} />
+          <SearchableSelect value={sektor} onChange={setSektor} options={["Semua sektor", ...SEKTOR_OPTIONS.slice(1)]} size="sm" className="flex-1 min-w-0" />
           <SearchableSelect
             value={distrik}
             onChange={setDistrik}
             options={["Semua distrik", ...distrikList]}
+            size="sm"
+            className="flex-1 min-w-0"
           />
-          <SearchableSelect value={status} onChange={setStatus} options={["Semua status", ...STATUS_OPTIONS]} labels={{ Draft: "Tercatat" }} />
+          <SearchableSelect value={status} onChange={setStatus} options={["Semua status", ...STATUS_OPTIONS]} labels={{ Draft: "Tercatat" }} size="sm" className="flex-1 min-w-0" />
           <div className="ml-auto flex items-center gap-3">
             <div className="flex items-center gap-1.5 text-[11px] tablet:text-xs text-slate-soft">
               Tampilkan

@@ -40,6 +40,7 @@ export default function FenomenaTerbaru({ dateFrom, dateTo }) {
   const searchParams = useSearchParams();
   const { showLoading } = useGlobalLoading();
   const isFirst = useRef(true);
+  
   const [items, setItems] = useState([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(() => parseInt(searchParams.get("fPage") || "1", 10));
@@ -109,9 +110,15 @@ export default function FenomenaTerbaru({ dateFrom, dateTo }) {
     setLoading(false);
   }, [page, pageSize, search, sektor, distrik, status, dateFrom, sortBy, sortDir, dateTo]);
 
+  const prevFilterDeps = useRef({ search, sektor, distrik, status, sortBy, sortDir, dateFrom, dateTo });
   useEffect(() => {
-    if (isFirst.current) { isFirst.current = false; return; }
-    setPage(1);
+    const prev = prevFilterDeps.current;
+    const changed =
+      prev.search !== search || prev.sektor !== sektor || prev.distrik !== distrik ||
+      prev.status !== status || prev.sortBy !== sortBy || prev.sortDir !== sortDir ||
+      prev.dateFrom !== dateFrom || prev.dateTo !== dateTo;
+    prevFilterDeps.current = { search, sektor, distrik, status, sortBy, sortDir, dateFrom, dateTo };
+    if (changed) setPage(1);
   }, [search, sektor, distrik, status, sortBy, sortDir, dateFrom, dateTo]);
   useEffect(() => { load(); }, [load]);
 

@@ -75,9 +75,32 @@ export default function FenomenaPerBulanChart({ dateFrom, dateTo }) {
           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E4E2DC" />
           <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fill: "#5B6B76", fontSize: 12 }} />
           <YAxis hide />
-          <Tooltip contentStyle={{ borderRadius: 8, border: "1px solid #E4E2DC", fontSize: 12 }} labelStyle={{ fontWeight: 700, color: SEMANTIC.ink }} />
+          <Tooltip
+            contentStyle={{ borderRadius: 8, border: "1px solid #E4E2DC", fontSize: 12 }}
+            labelStyle={{ fontWeight: 700, color: SEMANTIC.ink }}
+            formatter={(value, name) => [value, name === "Draft" ? "Tercatat" : name]}
+          />
           <Bar dataKey="Terverifikasi" stackId="a" fill={SEMANTIC.tealDark}>
-            <LabelList dataKey="Terverifikasi" position="inside" fill="#fff" fontSize={11} formatter={(v) => (v > 0 ? v : "")} />
+            <LabelList
+              dataKey="Terverifikasi"
+              content={(props) => {
+                const { x, y, width, value } = props;
+                if (!value) return null;
+                const isOutside = value <= 10;
+                return (
+                  <text
+                    x={x + width / 2}
+                    y={isOutside ? y - 6 : y + 16}
+                    textAnchor="middle"
+                    fill={isOutside ? SEMANTIC.tealDark : "#fff"}
+                    fontSize={11}
+                    fontWeight={isOutside ? 700 : 400}
+                  >
+                    {value}
+                  </text>
+                );
+              }}
+            />
           </Bar>
           <Bar dataKey="Draft" stackId="a" fill={SEMANTIC.teal} radius={[4, 4, 0, 0]}>
             <LabelList dataKey="Draft" position="inside" fill="#fff" fontSize={11} formatter={(v) => (v > 0 ? v : "")} />
