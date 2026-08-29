@@ -5,7 +5,6 @@ export async function register() {
 
     const cron = require("node-cron");
 
-    // Sinkron portal berita tiap 3 jam
     cron.schedule("0 */3 * * *", async () => {
       try {
         const { scrapeAllNewsFeeds } = await import("./lib/newsScraper");
@@ -21,7 +20,6 @@ export async function register() {
       }
     });
 
-    // Sinkron Instagram & Facebook tiap 6 jam
     cron.schedule("0 */6 * * *", async () => {
       try {
         const { scrapeMetaSources } = await import("./lib/metaApi");
