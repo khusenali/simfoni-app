@@ -21,7 +21,8 @@ export default function SumberData({ summary }) {
   const data = (summary.sumber || []).map((s, i) => ({
     name: s.nama, value: s.jumlah, color: paletteColor(i),
   }));
-  const total = summary.total || data.reduce((sum, d) => sum + d.value, 0) || 1;
+  const total = summary.total ?? data.reduce((sum, d) => sum + d.value, 0);
+  const safeDivisor = total || 1; // cuma buat cegah bagi nol pas hover, gak buat ditampilin
   const active = activeIndex !== null ? data[activeIndex] : null;
 
   return (
@@ -48,7 +49,7 @@ export default function SumberData({ summary }) {
         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
           <span className="text-[22px] font-extrabold text-ink">{active ? active.value : total}</span>
           <span className="text-[11px] font-semibold text-slate-soft">
-            {active ? `${active.name} · ${Math.round((active.value / total) * 100)}%` : "Total Sumber"}
+            {active ? `${active.name} · ${Math.round((active.value / safeDivisor) * 100)}%` : "Total Sumber"}
           </span>
         </div>
       </div>

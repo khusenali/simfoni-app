@@ -1,6 +1,7 @@
 import ExcelJS from "exceljs";
 import { listFenomena } from "../../../../lib/fenomenaRepo";
 import { formatDateTime } from "../../../../lib/format";
+import { buildExportFilename } from "../../../../lib/exportFilename";
 
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
@@ -47,7 +48,7 @@ const { data } = listFenomena({
   return new Response(buffer, {
     headers: {
       "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      "Content-Disposition": `attachment; filename="simfoni-laporan-fenomena.xlsx"`,
+      "Content-Disposition": `attachment; filename="${buildExportFilename(searchParams, "xlsx")}"`,
     },
   });
 }

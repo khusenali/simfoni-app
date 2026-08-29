@@ -1,6 +1,7 @@
 import PDFDocument from "pdfkit";
 import { listFenomena } from "../../../../lib/fenomenaRepo";
 import { formatDateTime } from "../../../../lib/format";
+import { buildExportFilename } from "../../../../lib/exportFilename";
 const { SEMANTIC, PALETTE } = require("../../../../lib/theme");
 
 const INK = SEMANTIC.ink;
@@ -257,7 +258,7 @@ export async function GET(request) {
   return new Response(buffer, {
     headers: {
       "Content-Type": "application/pdf",
-      "Content-Disposition": `attachment; filename="simfoni-laporan-fenomena.pdf"`,
+      "Content-Disposition": `attachment; filename="${buildExportFilename(searchParams, "pdf")}"`,
     },
   });
 }

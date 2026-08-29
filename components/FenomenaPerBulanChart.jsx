@@ -13,11 +13,34 @@ function formatPeriode(periode, granularity) {
   if (granularity === "tahun") return periode;
   if (granularity === "bulan") {
     const M = { "01":"Jan","02":"Feb","03":"Mar","04":"Apr","05":"Mei","06":"Jun","07":"Jul","08":"Agu","09":"Sep","10":"Okt","11":"Nov","12":"Des" };
-    const [, m] = periode.split("-");
-    return M[m] || periode;
+    const [y, m] = periode.split("-");
+    return `${M[m] || periode}-${y ? y.slice(-2) : ""}`;
   }
   const [, w] = periode.split("-");
   return `Mgg ${parseInt(w, 10)}`;
+}
+
+// Tick miring rata untuk semua label -- dipakai kalau data padat (>10 titik).
+// Beda dari edge-aware tick di TrenSentimenChart: di sini SEMUA label pakai
+// anchor & posisi yang sama persis, supaya baris label terlihat rapi/sejajar,
+// tidak "meloncat" tinggi antar label seperti kalau first/last diberi
+// perlakuan beda.
+function makeRotatedTick(fontSize = 11) {
+  return function RotatedTick({ x, y, payload }) {
+    return (
+      <text
+        x={x}
+        y={y}
+        dy={12}
+        textAnchor="end"
+        fill="#5B6B76"
+        fontSize={fontSize}
+        transform={`rotate(-35, ${x}, ${y + 12})`}
+      >
+        {payload.value}
+      </text>
+    );
+  };
 }
 
 export default function FenomenaPerBulanChart({ dateFrom, dateTo }) {
@@ -25,15 +48,16 @@ export default function FenomenaPerBulanChart({ dateFrom, dateTo }) {
   const [count, setCount] = useState(RANGE_CONFIG["Bulan"].default);
   const [data, setData] = useState([]);
   const cfg = RANGE_CONFIG[range];
+  const hasPeriodFilter = Boolean(dateFrom && dateTo);
 
   const load = useCallback(async () => {
-    const params = new URLSearchParams({ granularity: cfg.granularity, count: String(count) });
+    const params = new URLSearchParams({ granularity: cfg.granularity, count: String(hasPeriodFilter ? 999 : count) });
     if (dateFrom) params.set("dateFrom", dateFrom);
     if (dateTo) params.set("dateTo", dateTo);
     const res = await fetch(`/api/stats/tren-fenomena?${params.toString()}`);
     const json = await res.json();
     setData(json.data.map((d) => ({ ...d, label: formatPeriode(d.periode, cfg.granularity) })));
-  }, [cfg.granularity, count, dateFrom, dateTo]);
+  }, [cfg.granularity, count, dateFrom, dateTo, hasPeriodFilter]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -61,19 +85,32 @@ export default function FenomenaPerBulanChart({ dateFrom, dateTo }) {
         </div>
       </div>
 
-      <div className="flex items-center gap-3 mb-4">
-        <span className="text-xs text-slate-soft whitespace-nowrap">Tampilkan {count} {cfg.unit} terakhir</span>
-        <input
-          type="range" min={cfg.min} max={cfg.max} value={count}
-          onChange={(e) => setCount(parseInt(e.target.value, 10))}
-          className="w-full accent-teal"
-        />
-      </div>
+      {!hasPeriodFilter && (
+        <div className="flex items-center gap-3 mb-4">
+          <span className="text-xs text-slate-soft whitespace-nowrap">Tampilkan {count} {cfg.unit} terakhir</span>
+          <input
+            type="range" min={cfg.min} max={cfg.max} value={count}
+            onChange={(e) => setCount(parseInt(e.target.value, 10))}
+            className="w-full accent-teal"
+          />
+        </div>
+      )}
 
       <ResponsiveContainer width="100%" height={260}>
         <BarChart data={data} barSize={60}>
           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E4E2DC" />
-          <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fill: "#5B6B76", fontSize: 12 }} />
+          <XAxis
+            dataKey="label"
+            axisLine={false}
+            tickLine={false}
+            interval={0}
+            height={data.length > 10 ? 52 : 30}
+            tick={
+              data.length > 10
+                ? makeRotatedTick(data.length > 16 ? 9 : 10)
+                : { fill: "#5B6B76", fontSize: 12 }
+            }
+          />
           <YAxis hide />
           <Tooltip
             contentStyle={{ borderRadius: 8, border: "1px solid #E4E2DC", fontSize: 12 }}

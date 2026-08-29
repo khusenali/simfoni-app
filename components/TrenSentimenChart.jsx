@@ -7,17 +7,20 @@ import {
 import { SENTIMEN_COLORS, SEMANTIC } from "../lib/theme";
 
 const MONTH_LABEL = { "01":"Jan","02":"Feb","03":"Mar","04":"Apr","05":"Mei","06":"Jun","07":"Jul","08":"Agu","09":"Sep","10":"Okt","11":"Nov","12":"Des" };
-function formatMonth(ym) {
-  if (!ym) return "";
-  const [, m] = ym.split("-");
-  return MONTH_LABEL[m] || ym;
+function formatPeriode(periode, granularity) {
+  if (granularity === "minggu") {
+    const [, w] = periode.split("-");
+    return `Mgg ${parseInt(w, 10)}`;
+  }
+  const [y, m] = periode.split("-");
+  return `${MONTH_LABEL[m] || periode}-${y ? y.slice(-2) : ""}`;
 }
 
 // Custom tick sumbu-X: titik pertama rata-kiri, titik terakhir rata-kanan,
 // selebihnya rata-tengah -- mencegah label pertama/terakhir terpotong
 // karena text-anchor "middle" bawaan Recharts menempatkan separuh lebar
 // teks di luar batas SVG saat titik berada tepat di tepi area plot.
-function makeEdgeAwareTick(totalPoints) {
+function makeEdgeAwareTick(totalPoints, fontSize = 12) {
   return function EdgeAwareTick({ x, y, payload, index }) {
     let anchor = "middle";
     let dx = 0;
@@ -31,7 +34,8 @@ function makeEdgeAwareTick(totalPoints) {
         dy={16}
         textAnchor={anchor}
         fill="#5B6B76"
-        fontSize={12}
+        fontSize={fontSize}
+        transform={`rotate(-35, ${x + dx}, ${y + 16})`}
       >
         {payload.value}
       </text>
@@ -45,6 +49,7 @@ export default function TrenSentimenChart({ dateFrom, dateTo }) {
   const [sektor, setSektor] = useState("");
   const [months, setMonths] = useState(9);
   const [data, setData] = useState([]);
+  const hasPeriodFilter = Boolean(dateFrom && dateTo);
 
   useEffect(() => {
     (async () => {
@@ -55,14 +60,13 @@ export default function TrenSentimenChart({ dateFrom, dateTo }) {
   }, []);
 
   const load = useCallback(async () => {
-    const params = new URLSearchParams({ months: String(months) });
-    if (mode === "Sektor" && sektor) params.set("sektor", sektor);
+    const params = new URLSearchParams({ months: String(hasPeriodFilter ? 999 : months) });
     if (dateFrom) params.set("dateFrom", dateFrom);
     if (dateTo) params.set("dateTo", dateTo);
     const res = await fetch(`/api/stats/tren-sentimen?${params.toString()}`);
     const json = await res.json();
-    setData(json.data.map((d) => ({ ...d, label: formatMonth(d.bulan) })));
-  }, [mode, sektor, months, dateFrom, dateTo]);
+    setData(json.data.map((d) => ({ ...d, label: formatPeriode(d.bulan, "bulan") })));
+  }, [mode, sektor, months, dateFrom, dateTo, hasPeriodFilter]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -85,14 +89,16 @@ export default function TrenSentimenChart({ dateFrom, dateTo }) {
         </div>
       </div>
 
-      <div className="flex items-center gap-3 mb-4">
-        <span className="text-xs text-slate-soft whitespace-nowrap">Tampilkan {months} bulan terakhir</span>
-        <input
-          type="range" min={3} max={24} value={months}
-          onChange={(e) => setMonths(parseInt(e.target.value, 10))}
-          className="w-full accent-teal"
-        />
-      </div>
+      {!hasPeriodFilter && (
+        <div className="flex items-center gap-3 mb-4">
+          <span className="text-xs text-slate-soft whitespace-nowrap">Tampilkan {months} bulan terakhir</span>
+          <input
+            type="range" min={3} max={24} value={months}
+            onChange={(e) => setMonths(parseInt(e.target.value, 10))}
+            className="w-full accent-teal"
+          />
+        </div>
+      )}
 
       {mode === "Sektor" && (
         <select
@@ -117,7 +123,12 @@ export default function TrenSentimenChart({ dateFrom, dateTo }) {
               tickLine={false}
               interval={0}
               padding={{ left: 12, right: 12 }}
-              tick={makeEdgeAwareTick(data.length)}
+              height={data.length > 10 ? 55 : 30}
+              tick={
+                data.length > 10
+                  ? makeEdgeAwareTick(data.length, data.length > 16 ? 8 : 9)
+                  : { fill: "#5B6B76", fontSize: 12 }
+              }
             />
             <YAxis hide domain={[0, 100]} />
             <Tooltip

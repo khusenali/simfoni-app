@@ -49,12 +49,24 @@ export default function LaporanModal({ open, onClose, initialPeriod }) {
     })();
   }, [sektor, status, dateFrom, dateTo, open]);
 
+  function getPeriodeLabel() {
+    const ROMAWI = ["I", "II", "III", "IV"];
+    const MONTHS = ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
+    if (period.type === "tahun") return `Tahunan-${period.year}`;
+    if (period.type === "bulan") return `Bulanan-${MONTHS[period.month - 1]}-${period.year}`;
+    if (period.type === "triwulan") return `Triwulan${ROMAWI[period.quarter - 1]}-${period.year}`;
+    return "SemuaData";
+  }
+
   function buildQuery() {
     const params = new URLSearchParams();
     if (sektor) params.set("sektor", sektor);
     if (status) params.set("status", status);
     if (dateFrom) params.set("dateFrom", dateFrom);
     if (dateTo) params.set("dateTo", dateTo);
+    params.set("sektorLabel", sektor || "SemuaSektor");
+    params.set("statusLabel", status === "Draft" ? "Tercatat" : status || "SemuaStatus");
+    params.set("periodeLabel", getPeriodeLabel());
     return params.toString();
   }
 

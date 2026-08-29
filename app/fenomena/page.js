@@ -30,11 +30,11 @@ const SEKTOR_OPTIONS = [
   "J. Informasi dan Komunikasi",
   "K. Jasa Keuangan dan Asuransi",
   "L. Real Estat",
-  "M. Jasa Perusahaan",
-  "N. Administrasi Pemerintah, Pertahanan dan Jaminan Sosial Wajib",
-  "O. Jasa Pendidikan",
-  "P. Jasa Kesehatan dan Kegiatan Sosial",
-  "Q. Jasa Lainnya",
+  "M, N. Jasa Perusahaan",
+  "O. Administrasi Pemerintahan, Pertahanan, dan Jaminan Sosial Wajib",
+  "P. Jasa Pendidikan",
+  "Q. Jasa Kesehatan dan Kegiatan Sosial",
+  "R, S, T, U. Jasa Lainnya",
 ];
 
 const STATUS_LABEL = { Draft: "Tercatat", Terverifikasi: "Terverifikasi" };
@@ -94,6 +94,7 @@ function FenomenaList({ pin }) {
   const [groupMode, setGroupMode] = useState(false);
   const [groups, setGroups] = useState([]);
   const [groupTotal, setGroupTotal] = useState(0);
+  const [groupTotalFenomena, setGroupTotalFenomena] = useState(0);
   const [groupPage, setGroupPage] = useState(1);
   const [groupPageSize, setGroupPageSize] = useState(5);
   const [loadingGroups, setLoadingGroups] = useState(false);
@@ -138,6 +139,7 @@ function FenomenaList({ pin }) {
     const json = await res.json();
     setGroups(json.groups || []);
     setGroupTotal(json.total || 0);
+    setGroupTotalFenomena(json.totalFenomena || 0);
     setLoadingGroups(false);
   }, [groupPage, groupPageSize, search, sektor, distrik, status, dateFrom, dateTo]);
 
@@ -328,7 +330,9 @@ function FenomenaList({ pin }) {
 
       <SinkronBox onDone={load} total={grandTotal} />
       <div className="flex items-center justify-between mb-3">
-        <span className="text-sm text-slate-soft">{total} fenomena ditemukan</span>
+        <span className="text-sm text-slate-soft">
+          {groupMode ? `${groupTotalFenomena} fenomena mirip ditemukan` : `${total} fenomena ditemukan`}
+        </span>
       </div>
 
       <div className="card p-5">

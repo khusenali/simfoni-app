@@ -26,11 +26,11 @@ const SEKTOR_OPTIONS = [
   "J. Informasi dan Komunikasi",
   "K. Jasa Keuangan dan Asuransi",
   "L. Real Estat",
-  "M. Jasa Perusahaan",
-  "N. Administrasi Pemerintah, Pertahanan dan Jaminan Sosial Wajib",
-  "O. Jasa Pendidikan",
-  "P. Jasa Kesehatan dan Kegiatan Sosial",
-  "Q. Jasa Lainnya",
+  "M, N. Jasa Perusahaan",
+  "O. Administrasi Pemerintahan, Pertahanan, dan Jaminan Sosial Wajib",
+  "P. Jasa Pendidikan",
+  "Q. Jasa Kesehatan dan Kegiatan Sosial",
+  "R, S, T, U. Jasa Lainnya",
 ];
 const STATUS_OPTIONS = ["Semua status", "Draft", "Terverifikasi"];
 const ROW_OPTIONS = [5, 8, 10, 15, 20];
