@@ -8,7 +8,7 @@ export async function GET(request) {
   const page = parseInt(searchParams.get("page") || "1", 10);
   const pageSize = parseInt(searchParams.get("pageSize") || "10", 10);
 
-  const result = listFenomena({
+  const result = await listFenomena ({
     search: searchParams.get("search") || undefined,
     sektor: searchParams.get("sektor") || undefined,
     sumberTipe: searchParams.get("sumberTipe") || undefined,

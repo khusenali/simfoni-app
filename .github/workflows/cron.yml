@@ -1,0 +1,27 @@
+# .github/workflows/cron.yml
+name: SIMFONI Cron
+
+on:
+  schedule:
+    - cron: "0 */3 * * *"   # scrape berita, tiap 3 jam
+    - cron: "0 */6 * * *"   # scrape meta, tiap 6 jam
+    - cron: "0 1 * * *"     # cleanup data lama, tiap hari 01:00 UTC
+  workflow_dispatch:        # tombol "Run workflow" manual buat testing
+
+jobs:
+  trigger:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Tentukan endpoint sesuai jadwal yang memicu
+        id: pick
+        run: |
+          case "${{ github.event.schedule }}" in
+            "0 */3 * * *") echo "path=/api/scrape/news" >> "$GITHUB_OUTPUT" ;;
+            "0 */6 * * *") echo "path=/api/scrape/meta" >> "$GITHUB_OUTPUT" ;;
+            "0 1 * * *")   echo "path=/api/cron/cleanup" >> "$GITHUB_OUTPUT" ;;
+            *)             echo "path=/api/scrape/news" >> "$GITHUB_OUTPUT" ;;  # default utk workflow_dispatch manual
+          esac
+      - name: Panggil endpoint
+        run: |
+          curl --fail -sS -X POST "${{ secrets.APP_URL }}${{ steps.pick.outputs.path }}" \
+            -H "x-scrape-key: ${{ secrets.SCRAPE_TRIGGER_KEY }}"
