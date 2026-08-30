@@ -20,6 +20,18 @@ function formatPeriode(periode, granularity) {
   return `Mgg ${parseInt(w, 10)}`;
 }
 
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 640px)");
+    const update = () => setIsMobile(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
+  return isMobile;
+}
+
 // Tick miring rata untuk semua label -- dipakai kalau data padat (>10 titik).
 // Beda dari edge-aware tick di TrenSentimenChart: di sini SEMUA label pakai
 // anchor & posisi yang sama persis, supaya baris label terlihat rapi/sejajar,
@@ -43,21 +55,22 @@ function makeRotatedTick(fontSize = 11) {
   };
 }
 
-export default function FenomenaPerBulanChart({ dateFrom, dateTo }) {
+export default function FenomenaPerBulanChart({ dateFrom, dateTo, periodType }) {
   const [range, setRange] = useState("Bulan");
   const [count, setCount] = useState(RANGE_CONFIG["Bulan"].default);
   const [data, setData] = useState([]);
   const cfg = RANGE_CONFIG[range];
-  const hasPeriodFilter = Boolean(dateFrom && dateTo);
+  const isMobile = useIsMobile();
+  const hideSliderAndShowAll = periodType === "triwulan";
 
   const load = useCallback(async () => {
-    const params = new URLSearchParams({ granularity: cfg.granularity, count: String(hasPeriodFilter ? 999 : count) });
+    const params = new URLSearchParams({ granularity: cfg.granularity, count: String(hideSliderAndShowAll ? 999 : count) });
     if (dateFrom) params.set("dateFrom", dateFrom);
     if (dateTo) params.set("dateTo", dateTo);
     const res = await fetch(`/api/stats/tren-fenomena?${params.toString()}`);
     const json = await res.json();
     setData(json.data.map((d) => ({ ...d, label: formatPeriode(d.periode, cfg.granularity) })));
-  }, [cfg.granularity, count, dateFrom, dateTo, hasPeriodFilter]);
+  }, [cfg.granularity, count, dateFrom, dateTo, hideSliderAndShowAll]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -65,6 +78,10 @@ export default function FenomenaPerBulanChart({ dateFrom, dateTo }) {
     setRange(r);
     setCount(RANGE_CONFIG[r].default);
   }
+
+  const rotateThreshold = isMobile ? 5 : 10;
+  const shouldRotate = data.length > rotateThreshold;
+  const tickFontSize = isMobile ? (data.length > 8 ? 8 : 9) : (data.length > 16 ? 9 : 10);
 
   return (
     <div className="card p-5">
@@ -85,7 +102,7 @@ export default function FenomenaPerBulanChart({ dateFrom, dateTo }) {
         </div>
       </div>
 
-      {!hasPeriodFilter && (
+      {!hideSliderAndShowAll && (
         <div className="flex items-center gap-3 mb-4">
           <span className="text-xs text-slate-soft whitespace-nowrap">Tampilkan {count} {cfg.unit} terakhir</span>
           <input
@@ -104,11 +121,11 @@ export default function FenomenaPerBulanChart({ dateFrom, dateTo }) {
             axisLine={false}
             tickLine={false}
             interval={0}
-            height={data.length > 10 ? 52 : 30}
+            height={shouldRotate ? 52 : 30}
             tick={
-              data.length > 10
-                ? makeRotatedTick(data.length > 16 ? 9 : 10)
-                : { fill: "#5B6B76", fontSize: 12 }
+             shouldRotate
+               ? makeRotatedTick(tickFontSize)
+               : { fill: "#5B6B76", fontSize: isMobile ? 10 : 12 }
             }
           />
           <YAxis hide />

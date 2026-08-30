@@ -247,11 +247,21 @@ export async function GET(request) {
     doc.fontSize(9).fillColor(SOFT).font("Helvetica").text("Tidak ada fenomena yang cocok dengan filter ini.", PAGE_MARGIN, y);
   }
 
+  // PENTING: nulis teks di y=810 dianggap PDFKit "meluber" dari margin bawah
+  // halaman A4 (~802px dengan margin 40), dan itu memicu doc.addPage() OTOMATIS
+  // tiap kali footer ditulis -- efeknya satu halaman kosong tambahan per
+  // halaman asli, dan nomor halamannya sendiri malah lompat ke halaman kosong
+  // itu (bukan ke halaman yang dimaksud). Fix: nolin margin bawah SEMENTARA
+  // pas nulis footer, biar PDFKit gak nganggep ini "meluber".
   const pageCount = doc.bufferedPageRange().count;
+  const footerY = doc.page.height - 32; // ~810 utk A4, dihitung dari tinggi halaman asli
   for (let i = 0; i < pageCount; i++) {
     doc.switchToPage(i);
+    const originalBottomMargin = doc.page.margins.bottom;
+    doc.page.margins.bottom = 0;
     doc.fontSize(7.5).fillColor(SOFT).font("Helvetica")
-      .text(`Halaman ${i + 1} dari ${pageCount}`, PAGE_MARGIN, 810, { width: CONTENT_WIDTH, align: "right" });
+      .text(`Halaman ${i + 1} dari ${pageCount}`, PAGE_MARGIN, footerY, { width: CONTENT_WIDTH, align: "right" });
+    doc.page.margins.bottom = originalBottomMargin;
   }
 
   doc.end();

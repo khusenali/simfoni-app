@@ -134,8 +134,8 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 desktop:grid-cols-2 gap-5 mb-5 items-stretch">
-        <FenomenaPerBulanChart dateFrom={dateFrom} dateTo={dateTo} />
-        <TrenSentimenChart dateFrom={dateFrom} dateTo={dateTo} />
+        <FenomenaPerBulanChart dateFrom={dateFrom} dateTo={dateTo} periodType={period.type} />
+        <TrenSentimenChart dateFrom={dateFrom} dateTo={dateTo} periodType={period.type} />
       </div>
 
       <div className="grid grid-cols-1 desktop:grid-cols-2 gap-5 mb-5 items-stretch">

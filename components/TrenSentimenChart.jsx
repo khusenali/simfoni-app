@@ -43,13 +43,13 @@ function makeEdgeAwareTick(totalPoints, fontSize = 12) {
   };
 }
 
-export default function TrenSentimenChart({ dateFrom, dateTo }) {
-  const [mode, setMode] = useState("Semua");
+export default function TrenSentimenChart({ dateFrom, dateTo, periodType }) {  const [mode, setMode] = useState("Semua");
   const [sektorList, setSektorList] = useState([]);
   const [sektor, setSektor] = useState("");
   const [months, setMonths] = useState(9);
   const [data, setData] = useState([]);
-  const hasPeriodFilter = Boolean(dateFrom && dateTo);
+  const isMobile = useIsMobile();
+  const hideSliderAndShowAll = periodType === "triwulan";
 
   useEffect(() => {
     (async () => {
@@ -60,15 +60,19 @@ export default function TrenSentimenChart({ dateFrom, dateTo }) {
   }, []);
 
   const load = useCallback(async () => {
-    const params = new URLSearchParams({ months: String(hasPeriodFilter ? 999 : months) });
+    const params = new URLSearchParams({ months: String(hideSliderAndShowAll ? 999 : months) });
     if (dateFrom) params.set("dateFrom", dateFrom);
     if (dateTo) params.set("dateTo", dateTo);
     const res = await fetch(`/api/stats/tren-sentimen?${params.toString()}`);
     const json = await res.json();
     setData(json.data.map((d) => ({ ...d, label: formatPeriode(d.bulan, "bulan") })));
-  }, [mode, sektor, months, dateFrom, dateTo, hasPeriodFilter]);
+  }, [mode, sektor, months, dateFrom, dateTo, hideSliderAndShowAll]);
 
   useEffect(() => { load(); }, [load]);
+
+  const rotateThreshold = isMobile ? 5 : 10;
+  const shouldRotate = data.length > rotateThreshold;
+  const tickFontSize = isMobile ? (data.length > 8 ? 7 : 8) : (data.length > 16 ? 8 : 9);
 
   return (
     <div className="card p-5">
@@ -89,7 +93,7 @@ export default function TrenSentimenChart({ dateFrom, dateTo }) {
         </div>
       </div>
 
-      {!hasPeriodFilter && (
+      {!hideSliderAndShowAll && (
         <div className="flex items-center gap-3 mb-4">
           <span className="text-xs text-slate-soft whitespace-nowrap">Tampilkan {months} bulan terakhir</span>
           <input
@@ -123,11 +127,11 @@ export default function TrenSentimenChart({ dateFrom, dateTo }) {
               tickLine={false}
               interval={0}
               padding={{ left: 12, right: 12 }}
-              height={data.length > 10 ? 55 : 30}
+              height={shouldRotate ? 55 : 30}
               tick={
-                data.length > 10
-                  ? makeEdgeAwareTick(data.length, data.length > 16 ? 8 : 9)
-                  : { fill: "#5B6B76", fontSize: 12 }
+               shouldRotate
+                 ? makeEdgeAwareTick(data.length, tickFontSize)
+                 : { fill: "#5B6B76", fontSize: isMobile ? 10 : 12 }
               }
             />
             <YAxis hide domain={[0, 100]} />
