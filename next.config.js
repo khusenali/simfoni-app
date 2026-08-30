@@ -2,10 +2,8 @@
 const nextConfig = {
   reactStrictMode: true,
   experimental: {
-    serverComponentsExternalPackages: ["better-sqlite3", "pdfkit", "exceljs"],
-    instrumentationHook: true, // wajib biar instrumentation.js jalan
+    serverComponentsExternalPackages: ["@libsql/client", "pdfkit", "exceljs"],
   },
 };
 
 module.exports = nextConfig;
-
