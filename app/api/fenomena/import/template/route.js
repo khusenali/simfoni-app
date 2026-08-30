@@ -2,6 +2,8 @@ import { TEMPLATE_COLUMNS } from "../../../../../lib/importTemplate";
 import ExcelJS from "exceljs";
 import { getSektorList, getDistrikList } from "../../../../../lib/fenomenaRepo";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   const workbook = new ExcelJS.Workbook();
   const sheet = workbook.addWorksheet("Template Pendataan");
@@ -28,8 +30,8 @@ export async function GET() {
   // Dropdown Sektor & Distrik -- diambil langsung dari data yang ada sekarang
   // (sama seperti daftar di /api/indikator), supaya isian Excel selalu
   // konsisten dengan sektor/distrik yang sudah ada di sistem.
-  const sektorNames = getSektorList().map((s) => s.nama);
-  const distrikNames = getDistrikList().map((d) => d.nama);
+  const sektorNames = (await getSektorList()).map((s) => s.nama);
+  const distrikNames = (await getDistrikList()).map((d) => d.nama);
 
   const listSheet = workbook.addWorksheet("Daftar Pilihan");
   listSheet.state = "veryHidden"; // disembunyikan dari user, cuma jadi sumber dropdown
