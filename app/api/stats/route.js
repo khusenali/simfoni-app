@@ -5,6 +5,8 @@ import {
   getKeywordCloud,
 } from "../../../lib/statsRepo";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const dateFrom = searchParams.get("dateFrom") || undefined;
@@ -14,13 +16,13 @@ export async function GET(request) {
   const range = { dateFrom, dateTo };
 
   return NextResponse.json({
-    totals: getTotals(range),
-    kondisiEkonomi: getKondisiEkonomi({ ...range, prevDateFrom, prevDateTo }),
-    kondisiTerverifikasi: getKondisiTerverifikasi(range),
-    sentimenSummary: getSentimenSummary(range),
-    topSektor: getTopSektor(20, range),
-    sumberSummary: getSumberSummary(range),
-    sebaranDistrik: getSebaranDistrik(range),
-    keywordCloud: getKeywordCloud({ ...range, limit: 40 }),
+    totals: await getTotals(range),
+    kondisiEkonomi: await getKondisiEkonomi({ ...range, prevDateFrom, prevDateTo }),
+    kondisiTerverifikasi: await getKondisiTerverifikasi(range),
+    sentimenSummary: await getSentimenSummary(range),
+    topSektor: await getTopSektor(20, range),
+    sumberSummary: await getSumberSummary(range),
+    sebaranDistrik: await getSebaranDistrik(range),
+    keywordCloud: await getKeywordCloud({ ...range, limit: 40 }),
   });
 }
