@@ -3,12 +3,14 @@ import { isTahunFenomenaValid } from "../../../lib/dateRules";
 import { listFenomena, insertFenomenaWithSimilarity } from "../../../lib/fenomenaRepo";
 import { extractKeywords, analyzeSentiment, detectSektor } from "../../../lib/textmining";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const page = parseInt(searchParams.get("page") || "1", 10);
   const pageSize = parseInt(searchParams.get("pageSize") || "10", 10);
 
-  const result = await listFenomena ({
+  const result = await listFenomena({
     search: searchParams.get("search") || undefined,
     sektor: searchParams.get("sektor") || undefined,
     sumberTipe: searchParams.get("sumberTipe") || undefined,
@@ -48,7 +50,7 @@ export async function POST(request) {
   }
 
   const text = `${body.judul} ${body.uraian}`;
-  const id = insertFenomenaWithSimilarity({
+  const id = await insertFenomenaWithSimilarity({
     tanggal: body.tanggal,
     judul: body.judul,
     uraian: body.uraian,

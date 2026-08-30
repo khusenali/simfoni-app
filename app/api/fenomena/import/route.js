@@ -90,7 +90,10 @@ export async function POST(request) {
       continue;
     }
     const text = `${record.judul} ${record.uraian}`;
-    insertFenomena({
+    // Baris file Excel harus diproses satu-satu berurutan (for...of + await),
+    // BUKAN dipacu paralel -- tiap insertFenomena juga bisa bikin sektor/distrik
+    // baru, kalau ditembak bersamaan berisiko dobel sektor dengan nama sama.
+    await insertFenomena({
       tanggal: record.tanggal,
       judul: record.judul,
       uraian: record.uraian,

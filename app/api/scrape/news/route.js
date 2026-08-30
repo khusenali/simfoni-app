@@ -14,7 +14,7 @@ export async function POST(request) {
   }
   try {
     const result = await scrapeAllNewsFeeds();
-    db.prepare(`
+    await db.prepare(`
     INSERT INTO sync_log (tipe, last_sync, inserted, skipped) VALUES ('news', ?, ?, ?)
     ON CONFLICT(tipe) DO UPDATE SET last_sync = excluded.last_sync, inserted = excluded.inserted, skipped = excluded.skipped
     `).run(new Date().toISOString(), result.inserted, result.skipped);

@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
 import { db } from "../../../lib/db";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   try {
-    const rows = db.prepare(`
+    const rows = await db.prepare(`
       SELECT id, nama
       FROM sektor
       ORDER BY id

@@ -157,6 +157,8 @@ function drawSektorBars(doc, topSektor, y) {
   return y + 10;
 }
 
+export const dynamic = "force-dynamic";
+
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const filters = {
@@ -170,7 +172,7 @@ export async function GET(request) {
   // Ambil SEMUA baris yang cocok filter (dipakai untuk hitung ringkasan yang
   // akurat), lalu baru batasi berapa yang benar-benar dicetak satu-per-satu
   // di Section 2 supaya laporan tidak jadi ribuan halaman.
-  const { data: allData } = listFenomena({ ...filters, limit: 5000, offset: 0 });
+  const { data: allData } = await listFenomena({ ...filters, limit: 5000, offset: 0 });
   const printedData = allData.slice(0, MAX_PRINTED);
 
   const { totals, sentimenSummary, kondisi, topSektor, sumberSummary } = summarizeFromData(allData);

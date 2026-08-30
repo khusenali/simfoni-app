@@ -3,8 +3,10 @@ import { getById, updateFenomena, deleteFenomena } from "../../../../lib/fenomen
 import { isValidNeracaPin } from "../../../../lib/auth";
 import { db } from "../../../../lib/db";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(_request, { params }) {
-  const item = getById(params.id);
+  const item = await getById(params.id);
   if (!item) return NextResponse.json({ error: "Fenomena tidak ditemukan" }, { status: 404 });
   return NextResponse.json(item);
 }
@@ -16,14 +18,14 @@ export async function PATCH(request, { params }) {
     return NextResponse.json({ error: "Akses ditolak, PIN Tim Neraca tidak valid." }, { status: 403 });
   }
   const body = await request.json();
-  const current = getById(params.id);
+  const current = await getById(params.id);
   // Validasi sektor PDRB.
   // null diperbolehkan untuk "Tidak terklasifikasi".
   if (
     body.sektor_id !== undefined &&
     body.sektor_id !== null
   ) {
-    const sektor = db
+    const sektor = await db
       .prepare("SELECT id FROM sektor WHERE id = ?")
       .get(body.sektor_id);
 
@@ -41,9 +43,9 @@ export async function PATCH(request, { params }) {
     return NextResponse.json({ error: "Status tidak valid" }, { status: 400 });
   }
 
-  const updated = updateFenomena(params.id, body);
+  const updated = await updateFenomena(params.id, body);
 
-  return NextResponse.json(getById(params.id) || updated);
+  return NextResponse.json((await getById(params.id)) || updated);
 }
 
 export async function DELETE(request, { params }) {
@@ -53,7 +55,7 @@ export async function DELETE(request, { params }) {
   }
 
   try {
-    const result = deleteFenomena(params.id);
+    const result = await deleteFenomena(params.id);
     if (!result.ok && result.reason === "locked") {
       return NextResponse.json(
         { error: "Fenomena berstatus Digunakan tidak dapat dihapus (menjaga riwayat publikasi)." },

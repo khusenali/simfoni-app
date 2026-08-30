@@ -3,10 +3,12 @@ import { listFenomena } from "../../../../lib/fenomenaRepo";
 import { formatDateTime } from "../../../../lib/format";
 import { buildExportFilename } from "../../../../lib/exportFilename";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
 
-const { data } = listFenomena({
+const { data } = await listFenomena({
   search: searchParams.get("search") || undefined,
   sektor: searchParams.get("sektor") || undefined,
   sumberTipe: searchParams.get("sumberTipe") || undefined,
