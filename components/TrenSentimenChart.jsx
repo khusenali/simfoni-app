@@ -7,6 +7,7 @@ import {
 import { SENTIMEN_COLORS, SEMANTIC } from "../lib/theme";
 
 const MONTH_LABEL = { "01":"Jan","02":"Feb","03":"Mar","04":"Apr","05":"Mei","06":"Jun","07":"Jul","08":"Agu","09":"Sep","10":"Okt","11":"Nov","12":"Des" };
+
 function formatPeriode(periode, granularity) {
   if (granularity === "minggu") {
     const [, w] = periode.split("-");
@@ -14,6 +15,18 @@ function formatPeriode(periode, granularity) {
   }
   const [y, m] = periode.split("-");
   return `${MONTH_LABEL[m] || periode}-${y ? y.slice(-2) : ""}`;
+}
+
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 640px)");
+    const update = () => setIsMobile(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
+  return isMobile;
 }
 
 // Custom tick sumbu-X: titik pertama rata-kiri, titik terakhir rata-kanan,
