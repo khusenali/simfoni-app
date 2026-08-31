@@ -1,11 +1,15 @@
 import { NextResponse } from "next/server";
 import { db } from "../../../../lib/db";
 import { scrapeMetaSources } from "../../../../lib/metaApi";
+const { isValidNeracaPin } = require("../../../../lib/auth");
 
+// Sama seperti scrape/news: GitHub Actions pakai x-scrape-key,
+// tombol manual di UI pakai PIN Neraca yang udah di-unlock.
 function isAuthorized(request) {
-  const required = process.env.SCRAPE_TRIGGER_KEY;
-  if (!required) return true;
-  return request.headers.get("x-scrape-key") === required;
+  const requiredKey = process.env.SCRAPE_TRIGGER_KEY;
+  if (requiredKey && request.headers.get("x-scrape-key") === requiredKey) return true;
+  if (isValidNeracaPin(request.headers.get("x-neraca-pin"))) return true;
+  return !requiredKey;
 }
 
 export async function POST(request) {

@@ -4,12 +4,14 @@ import { useEffect, useState } from "react";
 import { RefreshCw } from "lucide-react";
 import { formatDateTime } from "../lib/format";
 import { useGlobalLoading } from "./GlobalLoadingContext";
+import { useNeracaAccess } from "./NeracaAccessContext";
 
 export default function SinkronBox({ onDone }) {
   const [scraping, setScraping] = useState({ news: false, meta: false });
   const [scrapeStatus, setScrapeStatus] = useState({ news: null, meta: null });
   const [lastSync, setLastSync] = useState({ news: null, meta: null });
   const { showLoading, hideLoading } = useGlobalLoading();
+  const { pin } = useNeracaAccess();
 
   useEffect(() => {
     loadStatus();
@@ -26,8 +28,16 @@ export default function SinkronBox({ onDone }) {
     setScrapeStatus((s) => ({ ...s, [type]: null }));
     showLoading(type === "news" ? "Menyinkron portal berita..." : "Menyinkron Instagram & Facebook...");
     try {
-      const res = await fetch(`/api/scrape/${type}`, { method: "POST" });
+      const res = await fetch(`/api/scrape/${type}`, {
+        method: "POST",
+        headers: pin ? { "x-neraca-pin": pin } : {},
+      });
       const json = await res.json();
+      if (!res.ok) {
+        setScrapeStatus((s) => ({ ...s, [type]: { error: json.error || "Gagal menyinkron." } }));
+        return;
+      }
+
       setScrapeStatus((s) => ({ ...s, [type]: json }));
       await loadStatus();
       onDone?.();
