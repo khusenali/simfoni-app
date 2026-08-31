@@ -4,6 +4,7 @@
 //
 // Jalankan: node scripts/backfill-news.js "Raja Ampat News" 2025 1 2025 1
 //           (argumen: nama_sumber tahun_awal bulan_awal tahun_akhir bulan_akhir)
+require("dotenv").config({ path: ".env.local" });
 const { scrapeArchiveRange } = require("../lib/newsScraper");
 
 const [, , namaSumber, fromYear, fromMonth, toYear, toMonth] = process.argv;
