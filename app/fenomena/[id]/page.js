@@ -176,7 +176,7 @@ export default function FenomenaDetailPage() {
       <div className="card p-6 mb-5">
         <h3 className="font-bold text-ink mb-3">Validasi Fenomena</h3>
         <p className="text-sm text-slate-soft mb-4">
-          Status awal setiap fenomena adalah Draft. Tim Neraca dapat memverifikasi atau menandai fenomena
+          Status awal setiap fenomena adalah Tercatat. Tim Neraca dapat memverifikasi atau menandai fenomena
           sebagai bukti berita sudah valid dan sesuai kondisi lapangan.
         </p>
         {unlocked ? (
@@ -188,7 +188,7 @@ export default function FenomenaDetailPage() {
                 disabled={saving || item.status === s}
                 className="px-4 py-2 rounded-lg border font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {s}
+                {s === "Draft" ? "Tercatat" : s}
               </button>
             ))}
           </div>

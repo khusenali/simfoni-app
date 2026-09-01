@@ -53,7 +53,7 @@ export default function SinkronBox({ onDone }) {
     <div className="card p-5 mb-6">
       <h3 className="font-bold text-ink mb-1">Sinkronkan Data Otomatis</h3>
       <p className="text-sm text-slate-soft mb-4">
-        Ambil fenomena terbaru terkait Raja Ampat dari portal berita dan akun Instagram/Facebook resmi yang terdaftar.
+        Data disinkron otomatis setiap Hari Minggu. Gunakan tombol di bawah untuk mengambil data terbaru sekarang juga.
       </p>
       <div className="flex flex-wrap gap-6">
         <div>
