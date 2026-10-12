@@ -6,15 +6,18 @@ import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { MiripBadge } from "../../components/Badges";
 import SinkronBox from "../../components/SinkronBox";
 import PendataanModal from "../../components/PendataanModal";
+import LaporanModal from "../../components/LaporanModal";
 import NeracaUnlockModal from "../../components/NeracaUnlockModal";
 import { ConfirmDialog, useConfirm } from "../../components/ConfirmDialog";
 import { useNeracaAccess } from "../../components/NeracaAccessContext";
 import { formatDateTime } from "../../lib/format";
 import SearchableSelect from "../../components/SearchableSelect";
-import { Search, Plus, Lock, Trash2, Layers, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
+import { Search, Plus, Lock, Trash2, Layers, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Sparkles } from "lucide-react";
 import SortableHeader from "../../components/SortableHeader";
 import PeriodFilter, { computeDateRange } from "../../components/PeriodFilter";
 import { useGlobalLoading } from "../../components/GlobalLoadingContext";
+import ReferensiEksternal from "../../components/ReferensiEksternal";
+import { Download } from "lucide-react";
 
 const SEKTOR_OPTIONS = [
   "Semua sektor",
@@ -87,6 +90,7 @@ function FenomenaList({ pin }) {
   const [pageSize, setPageSize] = useState(() => parseInt(searchParams.get("pageSize") || "10", 10));
   const [loading, setLoading] = useState(true);
   const [showPendataan, setShowPendataan] = useState(false);
+  const [showLaporan, setShowLaporan] = useState(false);
   const { confirm, dialogProps } = useConfirm();
   const { showLoading, hideLoading } = useGlobalLoading();
 
@@ -320,12 +324,27 @@ function FenomenaList({ pin }) {
           <h1 className="text-2xl font-extrabold text-ink">Validasi Fenomena Tim Neraca</h1>
           <p className="text-sm text-slate-soft mt-1">Verifikasi status dan sentimen fenomena dari portal berita, media sosial, dan input hasil pendataan</p>
         </div>
-        <button
-          onClick={() => setShowPendataan(true)}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-teal-dark text-white text-sm font-semibold hover:bg-teal/90"
-        >
-          <Plus size={16} /> Tambah Fenomena
-        </button>
+        <div className="flex items-center gap-2">
+          <ReferensiEksternal />
+          <Link
+            href="/kandidat"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-line bg-white text-sm font-semibold text-ink hover:bg-bg"
+          >
+            <Sparkles size={16} /> Kandidat AI
+          </Link>
+          <button
+            onClick={() => setShowLaporan(true)}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-line bg-white text-sm font-semibold text-ink hover:bg-bg"
+          >
+            <Download size={16} /> Unduh Laporan
+          </button>
+          <button
+            onClick={() => setShowPendataan(true)}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-teal-dark text-white text-sm font-semibold hover:bg-teal/90"
+          >
+            <Plus size={16} /> Tambah Fenomena
+          </button>
+        </div>
       </div>
 
       <SinkronBox onDone={load} total={grandTotal} />
@@ -482,6 +501,7 @@ function FenomenaList({ pin }) {
       </div>
 
       <PendataanModal open={showPendataan} onClose={() => setShowPendataan(false)} onSaved={load} />
+      <LaporanModal open={showLaporan} onClose={() => setShowLaporan(false)} />
       <ConfirmDialog {...dialogProps} />
     </div>
   );

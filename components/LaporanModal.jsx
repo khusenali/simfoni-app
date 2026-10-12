@@ -119,15 +119,15 @@ export default function LaporanModal({ open, onClose, initialPeriod }) {
           <div className="flex gap-3 pt-2">
             <button
               onClick={() => download("excel")}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-teal text-white text-sm font-semibold hover:bg-teal-dark"
+              className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-teal text-white text-sm font-semibold hover:bg-teal-dark flex-1"
             >
-              <FileSpreadsheet size={16} /> Unduh Excel (.xlsx)
+              <FileSpreadsheet size={16} className="shrink-0" /> <span className="hidden tablet:inline">Unduh Excel (.xlsx)</span><span className="tablet:hidden">Excel</span>
             </button>
             <button
               onClick={() => download("pdf")}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-coral text-white text-sm font-semibold hover:opacity-90"
+              className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-coral text-white text-sm font-semibold hover:opacity-90 flex-1"
             >
-              <FileText size={16} /> Unduh PDF
+              <FileText size={16} className="shrink-0" /> <span className="hidden tablet:inline">Unduh PDF</span><span className="tablet:hidden">PDF</span>
             </button>
           </div>
         </div>

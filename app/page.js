@@ -9,9 +9,11 @@ import SektorTeratas from "../components/SektorTeratas";
 import SumberData from "../components/SumberData";
 import SebaranDistrik from "../components/SebaranDistrik";
 import DashboardActions from "../components/DashboardActions";
+import PerbandinganPeriode from "../components/PerbandinganPeriode";
 import PeriodFilter, { computeDateRange, computePreviousDateRange } from "../components/PeriodFilter";
 import { FileText, TrendingUp, TrendingDown, Minus, AlertTriangle, CheckCircle2, ClipboardCheck } from "lucide-react";
 import { KONDISI_STYLES } from "../lib/theme";
+import { Sparkles } from "lucide-react";
 
 const KONDISI_ICONS = { Tumbuh: TrendingUp, Stagnan: Minus, Kontraksi: TrendingDown, "Tidak ada data": Minus }
 
@@ -37,6 +39,9 @@ export default function DashboardPage() {
     month: new Date().getMonth() + 1,
   });
   const [stats, setStats] = useState(null);
+  const [tema, setTema] = useState(null);
+  const [temaLoading, setTemaLoading] = useState(false);
+  const [temaError, setTemaError] = useState(null);
   const { dateFrom, dateTo } = useMemo(() => computeDateRange(period), [period]);
   const { dateFrom: prevDateFrom, dateTo: prevDateTo } = useMemo(() => computePreviousDateRange(period), [period]);
 
@@ -51,11 +56,38 @@ export default function DashboardPage() {
   }, [dateFrom, dateTo, prevDateFrom, prevDateTo]);
 
   useEffect(() => { load(); }, [load]);
+  useEffect(() => { setTema(null); setTemaError(null); }, [dateFrom, dateTo]);
 
   if (!stats) return <div className="pt-8 text-sm text-slate-soft">Memuat dashboard...</div>;
 
   const { totals, kondisiEkonomi, kondisiTerverifikasi, sentimenSummary, topSektor, sumberSummary, sebaranDistrik, keywordCloud } = stats;
   const pctTerverifikasi = totals.total > 0 ? Math.round((totals.Terverifikasi / totals.total) * 100) : 0;
+
+function periodLabelDashboard() {
+  if (period.type === "tahun") return `Tahun ${period.year}`;
+  if (period.type === "triwulan") return `Triwulan ${period.quarter} ${period.year}`;
+  if (period.type === "bulan") return `Bulan ${period.month}/${period.year}`;
+  return "Semua Data";
+}
+
+async function generateTema() {
+  setTemaLoading(true);
+  setTemaError(null);
+  try {
+    const res = await fetch("/api/stats/ringkasan-tema", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ periodLabel: periodLabelDashboard(), dateFrom, dateTo }),
+    });
+    const json = await res.json();
+    if (!res.ok) { setTemaError(json.error || "Gagal membuat ringkasan."); return; }
+    setTema(json.ringkasan);
+  } catch (err) {
+    setTemaError(err.message);
+  } finally {
+    setTemaLoading(false);
+  }
+}
 
   return (
     <div className="pt-8">
@@ -129,8 +161,41 @@ export default function DashboardPage() {
         </div>
       </div>
 
+      {kondisiEkonomi.total > 0 && (
+        <div className="relative bg-teal-dark rounded-2xl p-4 tablet:p-5 text-white overflow-hidden mb-5">
+          <div className="absolute -right-6 -top-6 w-32 h-32 rounded-full bg-white/5" />
+          <div className="absolute -right-2 -bottom-10 w-24 h-24 rounded-full bg-white/5" />
+
+          {!tema && !temaLoading && (
+            <button
+              onClick={generateTema}
+              className="relative flex items-center gap-2 text-[13px] font-semibold text-white/90 hover:text-white"
+            >
+              <span className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0">
+                <Sparkles size={13} className="text-white" />
+              </span>
+              Apa yang lagi ramai dibahas pada periode ini?
+            </button>
+          )}
+          {temaLoading && <p className="relative text-[13px] text-white/70">Merangkum...</p>}
+          {temaError && <p className="relative text-[13px] text-white/70">Gagal: {temaError}</p>}
+          {tema && (
+            <div className="relative flex items-start gap-2.5">
+              <span className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0 mt-0.5">
+                <Sparkles size={13} className="text-white" />
+              </span>
+              <p className="text-[13px] text-white/90 leading-relaxed">{tema}</p>
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="mb-5">
         <FenomenaTerbaru dateFrom={dateFrom} dateTo={dateTo} />
+      </div>
+
+      <div className="mb-5">
+        <PerbandinganPeriode />
       </div>
 
       <div className="grid grid-cols-1 desktop:grid-cols-2 gap-5 mb-5 items-stretch">

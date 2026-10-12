@@ -2,8 +2,12 @@ import { NextResponse } from "next/server";
 import { isTahunFenomenaValid } from "../../../../lib/dateRules";
 import ExcelJS from "exceljs";
 import { insertFenomena } from "../../../../lib/fenomenaRepo";
-import { extractKeywords, analyzeSentiment, detectSektor } from "../../../../lib/textmining";
+import { extractKeywords, detectSektor } from "../../../../lib/textmining";
+import { resolveSentimentBatch } from "../../../../lib/sentimentService";
 import { TEMPLATE_COLUMNS, isContohRow } from "../../../../lib/importTemplate";
+
+export const runtime = "nodejs"; // wajib -- ONNX runtime (transformers.js) butuh Node.js, gak jalan di Edge runtime
+export const maxDuration = 60; // import bisa banyak baris; sesuaikan ke limit plan Vercel kamu (Hobby/Pro/Enterprise beda batas)
 
 function excelValueToString(value) {
   if (value == null) return "";
@@ -67,6 +71,11 @@ export async function POST(request) {
   let contohDiabaikan = 0;
   let diluarRentangTahun = 0;
 
+  // Pass 1: validasi tiap baris & kumpulkan teks yang valid dulu -- supaya
+  // sentimen semua baris bisa diklasifikasi SEKALI lewat satu panggilan
+  // batch ke IndoBERT (lebih efisien daripada satu request per baris),
+  // sebelum masuk ke pass 2 yang insert satu-satu berurutan ke DB.
+  const validRows = [];
   for (let r = 2; r <= sheet.rowCount; r++) {
     const row = sheet.getRow(r);
     const record = {};
@@ -89,10 +98,17 @@ export async function POST(request) {
       diluarRentangTahun++;
       continue;
     }
-    const text = `${record.judul} ${record.uraian}`;
-    // Baris file Excel harus diproses satu-satu berurutan (for...of + await),
-    // BUKAN dipacu paralel -- tiap insertFenomena juga bisa bikin sektor/distrik
-    // baru, kalau ditembak bersamaan berisiko dobel sektor dengan nama sama.
+
+    validRows.push({ record, text: `${record.judul} ${record.uraian}` });
+  }
+
+  const sentiments = await resolveSentimentBatch(validRows.map((v) => v.text));
+
+  // Pass 2: baris file Excel harus diproses satu-satu berurutan (for...of + await),
+  // BUKAN dipacu paralel -- tiap insertFenomena juga bisa bikin sektor/distrik
+  // baru, kalau ditembak bersamaan berisiko dobel sektor dengan nama sama.
+  for (let i = 0; i < validRows.length; i++) {
+    const { record, text } = validRows[i];
     await insertFenomena({
       tanggal: record.tanggal,
       judul: record.judul,
@@ -105,7 +121,7 @@ export async function POST(request) {
       distrik_nama: record.distrik,
       sektor_nama: record.sektor || detectSektor(text),
       keyword: extractKeywords(text),
-      sentimen: analyzeSentiment(text),
+      sentimen: sentiments[i],
       status: "Draft",
       penulis: record.penulis || null,
       media: "Import Excel",

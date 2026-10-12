@@ -1,5 +1,11 @@
 node_modules
 .next
+# Model IndoBERT lokal -- JANGAN pernah di-commit (440MB+, lewat batas file
+# GitHub & batas ukuran Serverless Function Vercel). Model di-hosting di
+# HuggingFace Hub repo sendiri dan di-load saat runtime, lihat
+# lib/sentimentTransformers.js. Folder ini cuma scratch area lokal buat
+# nyiapin file sebelum di-upload ke Hub.
+models/
 data/*.db
 data/*.db-*
 .env.local

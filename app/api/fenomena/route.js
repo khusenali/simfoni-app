@@ -1,9 +1,12 @@
 import { NextResponse } from "next/server";
 import { isTahunFenomenaValid } from "../../../lib/dateRules";
 import { listFenomena, insertFenomenaWithSimilarity } from "../../../lib/fenomenaRepo";
-import { extractKeywords, analyzeSentiment, detectSektor } from "../../../lib/textmining";
+import { extractKeywords, detectSektor } from "../../../lib/textmining";
+import { resolveSentiment } from "../../../lib/sentimentService";
 
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs"; // wajib -- ONNX runtime (transformers.js) butuh Node.js, gak jalan di Edge runtime
+export const maxDuration = 30; // cold start load model IndoBERT bisa makan beberapa detik
 
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
@@ -50,6 +53,7 @@ export async function POST(request) {
   }
 
   const text = `${body.judul} ${body.uraian}`;
+  const sentimen = body.sentimen || (await resolveSentiment(text));
   const id = await insertFenomenaWithSimilarity({
     tanggal: body.tanggal,
     judul: body.judul,
@@ -62,7 +66,7 @@ export async function POST(request) {
     distrik_nama: body.distrik,
     sektor_nama: body.sektor || detectSektor(text),
     keyword: extractKeywords(text),
-    sentimen: body.sentimen || analyzeSentiment(text),
+    sentimen,
     status: "Draft", // Aturan bisnis #5: status awal selalu Draft
     penulis: body.penulis || null,
     media: "Input Manual",

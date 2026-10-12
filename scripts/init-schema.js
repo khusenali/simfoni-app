@@ -148,6 +148,39 @@ CREATE INDEX IF NOT EXISTS idx_fenomena_kbli_kbli ON fenomena_kbli(kbli_id);
     `TEXT CHECK (classification_method IN ("kbli_weighted_rule", "manual_validation", "unclassified"))`
   );
 
+  // kandidat_berita & gemini_usage_log awalnya dibuat lewat migrasi terpisah
+  // (scripts/add-kandidat-table.js) -- disalin ke sini juga (IF NOT EXISTS)
+  // supaya init-schema.js tetap satu-satunya skrip yang cukup dijalankan
+  // ulang kapan saja terhadap DB produksi.
+  await db.exec(`
+CREATE TABLE IF NOT EXISTS kandidat_berita (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  judul TEXT NOT NULL,
+  ringkasan TEXT,
+  url TEXT NOT NULL UNIQUE,
+  tanggal TEXT,
+  sumber_disebutkan TEXT,
+  status TEXT NOT NULL DEFAULT 'Menunggu' CHECK (status IN ('Menunggu','Disetujui','Ditolak')),
+  fenomena_id INTEGER REFERENCES fenomena(id) ON DELETE SET NULL,
+  dicari_pada TEXT DEFAULT (datetime('now')),
+  ditinjau_pada TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_kandidat_status ON kandidat_berita(status);
+
+CREATE TABLE IF NOT EXISTS gemini_usage_log (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  dipanggil_pada TEXT DEFAULT (datetime('now'))
+);
+`);
+
+  // Klasifikasi sektor + skor relevansi Raja Ampat dihitung di muka (saat
+  // scan), bukan baru saat approve -- supaya bisa difilter/ditampilkan di
+  // halaman /kandidat sebelum Tim Neraca memutuskan.
+  await ensureColumn("kandidat_berita", "sektor_id", "INTEGER REFERENCES sektor(id)");
+  await ensureColumn("kandidat_berita", "sektor_nama", "TEXT");
+  await ensureColumn("kandidat_berita", "skor_relevansi", "REAL");
+  await ensureColumn("kandidat_berita", "label_relevansi", "TEXT");
+
   console.log("Skema siap.");
 }
 
