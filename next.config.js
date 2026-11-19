@@ -2,7 +2,7 @@
 const nextConfig = {
   reactStrictMode: true,
   experimental: {
-    serverComponentsExternalPackages: ["@libsql/client", "pdfkit", "exceljs", "@huggingface/transformers", "onnxruntime-node"],
+    serverComponentsExternalPackages: ["@libsql/client", "pdfkit", "exceljs"],
   },
 };
 
